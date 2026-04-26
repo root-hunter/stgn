@@ -37,8 +37,8 @@ jobs:
       - name: Build WASM
         run: wasm-pack build stng-wasm --target web --out-dir ../docs/pkg
 
-      - name: Verify pkg output
-        run: ls -la docs/pkg/
+      - name: Remove wasm-pack .gitignore from pkg
+        run: rm -f docs/pkg/.gitignore
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
