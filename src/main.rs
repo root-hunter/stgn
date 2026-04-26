@@ -1,5 +1,9 @@
 use image::ImageReader;
-use stng::{decoder::Decoder, encoder::Encoder, utils::{bytes_to_human, init_logging}};
+use stng::{
+    decoder::Decoder,
+    encoder::Encoder,
+    utils::{bytes_to_human, init_logging},
+};
 use tracing::info;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -16,7 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Image path: {}", image_path);
     info!("Image format: {:?}", img.color());
     info!("Image dimensions: {}x{}", width, height);
-    info!("Image encoding capacity: {}", bytes_to_human(((width * height * 3) / 8 - 4).into())); // -4 for header
+    info!(
+        "Image encoding capacity: {}",
+        bytes_to_human(((width * height * 3) / 8 - 4).into())
+    ); // -4 for header
 
     let file_path = "texts/commedia.txt";
 

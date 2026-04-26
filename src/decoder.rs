@@ -1,5 +1,4 @@
 use image::DynamicImage;
-use tracing::info;
 
 pub struct Decoder;
 

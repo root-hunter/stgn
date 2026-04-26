@@ -4,11 +4,11 @@ pub mod utils;
 
 mod tests {
     #[cfg(test)]
-    use image::ImageReader;
+    use super::decoder::Decoder;
     #[cfg(test)]
     use super::encoder::Encoder;
     #[cfg(test)]
-    use super::decoder::Decoder;
+    use image::ImageReader;
 
     #[test]
     fn test_steganography() {

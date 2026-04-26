@@ -1,14 +1,9 @@
 use image::DynamicImage;
-use tracing::info;
 
 pub struct Encoder;
 
 impl Encoder {
-    pub fn encode(
-        img: &mut DynamicImage,
-        data: &[u8],
-    ) -> Result<(), Box<dyn std::error::Error>> {
-
+    pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
         let (width, height) = (img.width(), img.height());
         let capacity = (width * height * 3) as usize;
 
