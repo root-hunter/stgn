@@ -1,5 +1,5 @@
 use image::DynamicImage;
-use tracing::{info, debug, error};
+use tracing::info;
 
 pub struct Encoder;
 

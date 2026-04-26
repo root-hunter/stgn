@@ -1,6 +1,6 @@
 use image::ImageReader;
 use stng::{decoder::Decoder, encoder::Encoder, utils::bytes_to_human};
-use tracing::{info, debug, error};
+use tracing::info;
 use tracing_subscriber;
 
 
