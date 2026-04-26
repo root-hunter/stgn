@@ -1,4 +1,7 @@
 use image::DynamicImage;
+use postcard::from_bytes;
+
+use crate::header::Header;
 
 pub struct Decoder;
 
@@ -18,26 +21,40 @@ impl Decoder {
 
         let mut bit_iter = channels.iter().map(|b| b & 1);
 
-        // HEADER
-        let mut header: u32 = 0;
-        for _ in 0..32 {
-            let bit = bit_iter.next().ok_or("Image too small")?;
-            header = (header << 1) | bit as u32;
+        // Legge 8 bit consecutivi e li assembla in un byte
+        macro_rules! read_byte {
+            () => {{
+                let mut byte = 0u8;
+                for _ in 0..8 {
+                    let bit = bit_iter.next().ok_or("Image too small")?;
+                    byte = (byte << 1) | bit;
+                }
+                byte
+            }};
         }
 
-        let total_bits = header as usize * 8;
+        // Leggi 1 byte = lunghezza dell'header serializzato
+        let header_len = read_byte!() as usize;
 
-        let mut out = Vec::with_capacity(header as usize);
+        // Leggi i byte dell'header
+        let mut header_bytes = Vec::with_capacity(header_len);
+        for _ in 0..header_len {
+            header_bytes.push(read_byte!());
+        }
+
+        let header: Header = from_bytes(&header_bytes)?;
+        assert!(header.magic == *crate::MAGIC, "Invalid magic number");
+
+        let total_bits = header.length as usize * 8;
+        let mut out = Vec::with_capacity(header.length as usize);
 
         let mut byte = 0u8;
         let mut count = 0;
 
         for _ in 0..total_bits {
             let bit = bit_iter.next().ok_or("Image ended early")?;
-
             byte = (byte << 1) | bit;
             count += 1;
-
             if count == 8 {
                 out.push(byte);
                 byte = 0;

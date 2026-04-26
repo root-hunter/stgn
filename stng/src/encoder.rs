@@ -1,5 +1,9 @@
 use image::DynamicImage;
 
+use crate::header::Header;
+
+use postcard::to_slice;
+
 pub struct Encoder;
 
 impl Encoder {
@@ -7,14 +11,20 @@ impl Encoder {
         let (width, height) = (img.width(), img.height());
         let capacity = (width * height * 3) as usize;
 
-        let header = (data.len() as u32).to_be_bytes();
+        let header = Header::new(data.len());
 
-        let total_bits = (header.len() + data.len()) * 8;
+        let mut header_buf = [0u8; 16];
+        let header_bytes = to_slice(&header, &mut header_buf).unwrap();
+        let header_len = header_bytes.len() as u8;
+
+        let total_bits = (1 + header_bytes.len() + data.len()) * 8;
         if total_bits > capacity {
             return Err("Data too large".into());
         }
 
-        let mut byte_iter = header.iter().chain(data.iter());
+        let mut byte_iter = std::iter::once(&header_len)
+            .chain(header_bytes.iter())
+            .chain(data.iter());
         let mut current = 0u8;
         let mut bit_idx = 8;
 

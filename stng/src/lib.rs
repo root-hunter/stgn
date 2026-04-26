@@ -1,6 +1,9 @@
+pub mod header;
 pub mod decoder;
 pub mod encoder;
 pub mod utils;
+
+pub const MAGIC: &[u8; 4] = b"STNG";
 
 mod tests {
     #[cfg(test)]
@@ -97,6 +100,18 @@ mod tests {
             .decode()
             .unwrap();
         let data = vec![0, 255, 128, 64, 32, 16, 8, 4, 2, 1];
+        Encoder::encode_bytes(&mut img, &data).unwrap();
+        let extracted_data = Decoder::decode_bytes(&img).unwrap();
+        assert_eq!(data, extracted_data);
+    }
+
+    #[test]
+    fn test_magic_bytes() {
+        let mut img = ImageReader::open(asset("images/dyno.png"))
+            .unwrap()
+            .decode()
+            .unwrap();
+        let data = crate::MAGIC.to_vec();
         Encoder::encode_bytes(&mut img, &data).unwrap();
         let extracted_data = Decoder::decode_bytes(&img).unwrap();
         assert_eq!(data, extracted_data);
