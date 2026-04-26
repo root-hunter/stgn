@@ -1,15 +1,31 @@
 use image::DynamicImage;
 
-use crate::header::Header;
+use crate::{auth::{EncryptionSecret, EncryptionType, SecureContext}, header::Header};
 
 use postcard::to_slice;
 
 pub struct Encoder;
 
 impl Encoder {
-    pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn encode_secure(img: &mut DynamicImage, data: &[u8], secret: Option<&EncryptionSecret>) -> Result<(), Box<dyn std::error::Error>> {
+        let mut data = data.to_vec();
+        
+        let auth = SecureContext::new(match secret {
+            Some(EncryptionSecret::Xor(_)) => EncryptionType::Xor,
+            Some(EncryptionSecret::Aes256(_)) => EncryptionType::Aes256,
+            None => EncryptionType::None,
+        });
+
+        if secret.is_some() && !matches!(auth.encryption_type, EncryptionType::None) {
+            data = auth.encrypt(&data, secret.unwrap());
+        }
+        
         let (width, height) = (img.width(), img.height());
         let capacity = (width * height * 3) as usize;
+
+        let mut auth_buf = [0u8; 16];
+        let auth_bytes = to_slice(&auth, &mut auth_buf).unwrap();
+        let auth_len = auth_bytes.len() as u8;
 
         let header = Header::new(data.len());
 
@@ -17,12 +33,14 @@ impl Encoder {
         let header_bytes = to_slice(&header, &mut header_buf).unwrap();
         let header_len = header_bytes.len() as u8;
 
-        let total_bits = (1 + header_bytes.len() + data.len()) * 8;
+        let total_bits = (1 + auth_bytes.len() + header_bytes.len() + data.len()) * 8;
         if total_bits > capacity {
             return Err("Data too large".into());
         }
 
-        let mut byte_iter = std::iter::once(&header_len)
+        let mut byte_iter = std::iter::once(&auth_len)
+            .chain(auth_bytes.iter())
+            .chain(std::iter::once(&header_len))
             .chain(header_bytes.iter())
             .chain(data.iter());
         let mut current = 0u8;
@@ -72,23 +90,26 @@ impl Encoder {
     pub fn encode_string(
         img: &mut DynamicImage,
         data: &str,
+        secret: Option<&EncryptionSecret>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        Encoder::encode(img, data.as_bytes())
+        Encoder::encode_secure(img, data.as_bytes(), secret)
     }
 
     pub fn encode_file(
         img: &mut DynamicImage,
         file_path: &str,
+        secret: Option<&EncryptionSecret>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let data = std::fs::read(file_path)?;
-        Encoder::encode(img, &data)
+        Encoder::encode_secure(img, &data, secret)
     }
 
     pub fn encode_bytes(
         img: &mut DynamicImage,
         data: &[u8],
+        secret: Option<&EncryptionSecret>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        Encoder::encode(img, data)
+        Encoder::encode_secure(img, data, secret)
     }
 
     pub fn max_capacity(img: &DynamicImage) -> usize {

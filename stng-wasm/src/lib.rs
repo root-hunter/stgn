@@ -5,7 +5,7 @@ pub fn encode_string(image_bytes: &[u8], message: &str) -> Result<Vec<u8>, JsVal
     let mut img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    stng::encoder::Encoder::encode_string(&mut img, message)
+    stng::encoder::Encoder::encode_string(&mut img, message, None)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     let mut out: Vec<u8> = Vec::new();

@@ -1,6 +1,7 @@
 use image::DynamicImage;
 use postcard::from_bytes;
 
+use crate::auth::SecureContext;
 use crate::header::Header;
 
 pub struct Decoder;
@@ -20,7 +21,7 @@ impl Decoder {
         };
 
         let mut bit_iter = channels.iter().map(|b| b & 1);
-
+        
         // Legge 8 bit consecutivi e li assembla in un byte
         macro_rules! read_byte {
             () => {{
@@ -33,8 +34,20 @@ impl Decoder {
             }};
         }
 
+        // Leggi 1 byte = lunghezza dell'Auth serializzato
+        let auth_len = read_byte!() as usize;
+
+        // Leggi i byte dell'Auth
+        let mut auth_bytes = Vec::with_capacity(auth_len);
+        for _ in 0..auth_len {
+            auth_bytes.push(read_byte!());
+        }
+
+        let _auth: SecureContext = from_bytes(&auth_bytes)?;
+
         // Leggi 1 byte = lunghezza dell'header serializzato
         let header_len = read_byte!() as usize;
+
 
         // Leggi i byte dell'header
         let mut header_bytes = Vec::with_capacity(header_len);

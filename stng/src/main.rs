@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let file_path = "texts/commedia.txt";
 
-    Encoder::encode_file(&mut img, file_path)?;
+    Encoder::encode_file(&mut img, file_path, None)?;
     img.save("images/encoded_image.png")?;
 
     let img2 = ImageReader::open("images/encoded_image.png")?.decode()?;
