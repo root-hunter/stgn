@@ -10,3 +10,4 @@ crate-type = ["cdylib"]
 stng = { path = "../stng" }
 wasm-bindgen = "0.2"
 image = "0.25"
+getrandom = { version = "0.2", features = ["js"] }
