@@ -1,38 +1,51 @@
 #encode-section .compress-block {
-  margin-bottom: 1.2rem;
-  margin-top: 0.5rem;
-  background: rgba(108,140,255,0.03);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 1px 8px rgba(108,140,255,0.03);
-  padding: 1.1rem 1.2rem 0.7rem 1.2rem;
+  margin-bottom: 1.3rem;
+  margin-top: 0.7rem;
+  background: linear-gradient(120deg, rgba(108,140,255,0.08) 0%, rgba(167,139,250,0.07) 100%);
+  border: 1.5px solid var(--border-hover);
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(108,140,255,0.07);
+  padding: 1.25rem 1.5rem 1rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  transition: box-shadow 0.18s, border-color 0.18s;
+}
+#encode-section .compress-block:hover {
+  box-shadow: 0 4px 28px rgba(108,140,255,0.13);
+  border-color: var(--accent);
 }
 #encode-section .compress-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.2em;
+  margin-bottom: 0.25em;
 }
 #encode-section .compress-label {
-  font-weight: 600;
-  font-size: 1.05em;
-  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.08em;
+  color: var(--accent3);
   letter-spacing: 0.01em;
   display: flex;
   align-items: center;
   gap: 0.5em;
+  text-shadow: 0 1px 8px rgba(108,140,255,0.08);
+}
+#encode-section .compress-label svg, #encode-section .compress-label .icon {
+  font-size: 1.25em;
+  margin-right: 0.2em;
+  vertical-align: middle;
 }
 #encode-section .compress-switch {
-  margin-left: 1em;
+  margin-left: 1.2em;
 }
 #encode-section .compress-desc {
-  font-size: 0.92em;
-  color: var(--text-soft);
+  font-size: 0.97em;
+  color: var(--text-muted);
   margin-left: 0.1em;
   margin-bottom: 0.2em;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 #encode-section.panel {
   background: var(--surface);
