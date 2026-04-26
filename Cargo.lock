@@ -855,6 +855,7 @@ dependencies = [
 name = "stng-wasm"
 version = "0.1.0"
 dependencies = [
+ "image",
  "stng",
  "wasm-bindgen",
 ]

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>stng — WASM Steganography</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Animated background ── -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <!-- ── Hero ── -->
+  <header>
+    <div class="badge">WebAssembly · Rust · LSB</div>
+    <h1><span class="gradient-text">stng</span></h1>
+    <p class="subtitle">Hide secret messages inside your images.<br>LSB steganography compiled to WebAssembly with Rust.</p>
+    <div class="hero-chips">
+      <span class="chip">🔒 Zero server</span>
+      <span class="chip">⚡ Instant</span>
+      <span class="chip">🦀 Powered by Rust</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── Tabs ── -->
+    <div class="tabs">
+      <button class="tab active" data-tab="encode">📥 Encode</button>
+      <button class="tab" data-tab="decode">📤 Decode</button>
+    </div>
+
+    <!-- ── ENCODE PANEL ── -->
+    <section id="encode-section" class="panel active">
+      <div class="panel-header">
+        <h2>Hide a message</h2>
+        <p class="panel-desc">Upload a PNG/JPG image and write the text you want to hide in its pixels.</p>
+      </div>
+
+      <!-- Drop zone image -->
+      <div class="dropzone" id="encode-dropzone">
+        <input type="file" id="encode-image" accept="image/png,image/jpeg" />
+        <div class="dropzone-inner" id="encode-dropzone-inner">
+          <div class="dropzone-icon">🖼️</div>
+          <p class="dropzone-text">Drag an image here<br><span>or click to select one</span></p>
+        </div>
+        <canvas id="encode-preview"></canvas>
+      </div>
+
+      <div class="field">
+        <label for="encode-message">
+          Secret message
+          <span class="char-count" id="encode-char-count">0 characters</span>
+        </label>
+        <textarea id="encode-message" rows="5" placeholder="Write the message to hide inside the image..."></textarea>
+      </div>
+
+      <button id="encode-btn" class="btn btn-primary" disabled>
+        <span class="btn-icon">🔏</span> Encode
+      </button>
+
+      <div id="encode-result" class="result-box" hidden>
+        <div class="result-header">
+          <span class="result-icon success">✅</span>
+          <strong>Image encoded successfully!</strong>
+        </div>
+        <canvas id="encode-output-preview"></canvas>
+        <a id="encode-download" class="btn btn-success" download="stng_encoded.png">
+          ⬇ Download image
+        </a>
+      </div>
+    </section>
+
+    <!-- ── DECODE PANEL ── -->
+    <section id="decode-section" class="panel">
+      <div class="panel-header">
+        <h2>Extract a message</h2>
+        <p class="panel-desc">Upload an image with a hidden message to extract it.</p>
+      </div>
+
+      <div class="dropzone" id="decode-dropzone">
+        <input type="file" id="decode-image" accept="image/png,image/jpeg" />
+        <div class="dropzone-inner" id="decode-dropzone-inner">
+          <div class="dropzone-icon">🔍</div>
+          <p class="dropzone-text">Trascina un'immagine qui<br><span>o clicca per selezionarla</span></p>
+        </div>
+        <canvas id="decode-preview"></canvas>
+      </div>
+
+      <button id="decode-btn" class="btn btn-primary" disabled>
+        <span class="btn-icon">🔓</span> Decode
+      </button>
+
+      <div id="decode-result" class="result-box" hidden>
+        <div class="result-header">
+          <span class="result-icon success">✅</span>
+          <strong>Message extracted!</strong>
+        </div>
+        <pre id="decode-output"></pre>
+        <button class="btn btn-outline" id="copy-btn">📋 Copy text</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Made with 🦀 Rust + ⚡ WASM ·
+      <a href="https://github.com/root-hunter" target="_blank" rel="noopener">root-hunter</a>
+    </p>
+  </footer>
+
+  <div id="error-toast" hidden role="alert"></div>
+  <div id="success-toast" hidden role="status"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

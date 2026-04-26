@@ -85,9 +85,13 @@ install-wasm-target:
 wasm:
 	$(CARGO) build -p stng-wasm --target $(WASM_TARGET) --release
 
-## Genera i binding JS con wasm-pack
+## Genera i binding JS con wasm-pack e li mette in docs/pkg (pronti per il demo)
 wasm-pack:
-	$(WASM_PACK) build stng-wasm --target web
+	$(WASM_PACK) build stng-wasm --target web --out-dir ../docs/pkg
+
+## Avvia un server HTTP locale sulla cartella docs/ (richiede python3)
+serve-docs:
+	python3 -m http.server 8080 --directory docs
 
 # ── Pulizia ────────────────────────────────────────────────────────────────────
 
