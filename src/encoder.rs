@@ -1,6 +1,6 @@
 use image::{DynamicImage, GenericImage, GenericImageView};
 
-use crate::HEADER_SIZE;
+use crate::{HEADER_SIZE, utils::bytes_to_human};
 
 pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
     let width = img.width();
@@ -9,7 +9,10 @@ pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::er
 
     println!("Image dimensions: {}x{}", width, height);
     println!("Total number of pixels: {}", pixels_count);
-    println!("Bits needed for header encoding: {}", HEADER_SIZE);
+    println!(
+        "Bytes needed for header encoding: {}",
+        bytes_to_human(HEADER_SIZE as u64 / 8)
+    );
 
     let data_length = data.len() as u32;
     let data_length_bytes = data_length.to_be_bytes();
@@ -20,9 +23,6 @@ pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::er
         .collect::<Vec<String>>()
         .join("");
 
-    println!("Data length in bytes: {}", data_length);
-    println!("Data length in binary: {}", data_binary);
-
     data_binary.push_str(
         &data
             .iter()
@@ -32,8 +32,9 @@ pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::er
     );
 
     println!(
-        "Bits needed for data encoding: {}",
-        data_binary.len() - HEADER_SIZE
+        "Used space for encoding: {} / {}",
+        bytes_to_human((data_binary.len() - HEADER_SIZE) as u64 / 8),
+        bytes_to_human(pixels_count as u64 * 3 / 8)
     );
 
     let mut x = 0;
@@ -87,4 +88,12 @@ pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::er
 
 pub fn encode_string(img: &mut DynamicImage, data: &str) -> Result<(), Box<dyn std::error::Error>> {
     encode(img, data.as_bytes())
+}
+
+pub fn encode_file(
+    img: &mut DynamicImage,
+    file_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let data = std::fs::read(file_path)?;
+    encode(img, &data)
 }

@@ -1,6 +1,6 @@
 use image::{DynamicImage, GenericImageView};
 
-use crate::HEADER_SIZE;
+use crate::{HEADER_SIZE, utils::bytes_to_human};
 
 pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let width = img.width();
@@ -27,7 +27,6 @@ pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>>
 
     let data_length = u32::from_str_radix(&data_length_binary, 2).unwrap();
 
-    println!("Extracted data length binary: {}", data_length_binary);
     println!("Extracted data length: {}", data_length);
 
     let total_bits = HEADER_SIZE + data_length as usize * 8;
@@ -45,11 +44,9 @@ pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>>
         i += 1;
     }
 
-    println!(
-        "extracted_data_binary length: {}",
-        extracted_data_binary.len()
-    );
-    println!("Extracted binary data: {}", extracted_data_binary);
+    assert!(extracted_data_binary.len() / 8 == data_length as usize, "Extracted data length does not match the expected length");
+
+    println!("Bytes extracted: {}", bytes_to_human(extracted_data_binary.len() as u64 / 8));
 
     let extracted_data_bytes = extracted_data_binary
         .as_bytes()
@@ -67,4 +64,11 @@ pub fn decode_string(img: &DynamicImage) -> Result<String, Box<dyn std::error::E
     let extracted_data_bytes = decode(img)?;
     let extracted_data = String::from_utf8(extracted_data_bytes)?;
     Ok(extracted_data)
+}
+
+pub fn decode_file(img: &DynamicImage, output_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let extracted_data_bytes = decode(img)?;
+    std::fs::write(output_path, extracted_data_bytes)?;
+
+    Ok(())
 }
