@@ -64,4 +64,29 @@ mod tests {
         let extracted_data = Decoder::decode_string(&img).unwrap();
         assert_eq!(data, extracted_data);
     }
+
+    #[test]
+    fn test_file_encoding() {
+        let mut img = ImageReader::open("images/dyno.png")
+            .unwrap()
+            .decode()
+            .unwrap();
+        let file_path = "texts/commedia.txt";
+        let img = Encoder::encode_file(&mut img, file_path).unwrap();
+        let extracted_data = Decoder::decode_string(&img).unwrap();
+        let expected_data = std::fs::read_to_string(file_path).unwrap();
+        assert_eq!(expected_data, extracted_data);
+    }
+
+    #[test]
+    fn test_binary_encoding() {
+        let mut img = ImageReader::open("images/dyno.png")
+            .unwrap()
+            .decode()
+            .unwrap();
+        let data = vec![0, 255, 128, 64, 32, 16, 8, 4, 2, 1];
+        let img = Encoder::encode_bytes(&mut img, &data).unwrap();
+        let extracted_data = Decoder::decode_bytes(&img).unwrap();
+        assert_eq!(data, extracted_data);
+    }
 }
