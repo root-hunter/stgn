@@ -9,10 +9,21 @@ mod tests {
     use super::encoder::Encoder;
     #[cfg(test)]
     use image::ImageReader;
+    #[cfg(test)]
+    use std::path::Path;
+
+    /// Restituisce il path assoluto di una risorsa relativa alla root del workspace
+    #[cfg(test)]
+    fn asset(relative: &str) -> std::path::PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("workspace root")
+            .join(relative)
+    }
 
     #[test]
     fn test_steganography() {
-        let mut img = ImageReader::open("images/stego.jpg")
+        let mut img = ImageReader::open(asset("images/stego.jpg"))
             .unwrap()
             .decode()
             .unwrap();
@@ -26,7 +37,7 @@ mod tests {
 
     #[test]
     fn test_empty_string() {
-        let mut img = ImageReader::open("images/stego.jpg")
+        let mut img = ImageReader::open(asset("images/stego.jpg"))
             .unwrap()
             .decode()
             .unwrap();
@@ -40,7 +51,7 @@ mod tests {
 
     #[test]
     fn test_long_string() {
-        let mut img = ImageReader::open("images/stego.jpg")
+        let mut img = ImageReader::open(asset("images/stego.jpg"))
             .unwrap()
             .decode()
             .unwrap();
@@ -54,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_non_ascii_string() {
-        let mut img = ImageReader::open("images/stego.jpg")
+        let mut img = ImageReader::open(asset("images/stego.jpg"))
             .unwrap()
             .decode()
             .unwrap();
@@ -67,20 +78,21 @@ mod tests {
 
     #[test]
     fn test_file_encoding() {
-        let mut img = ImageReader::open("images/dyno.png")
+        let mut img = ImageReader::open(asset("images/dyno.png"))
             .unwrap()
             .decode()
             .unwrap();
-        let file_path = "texts/commedia.txt";
-        Encoder::encode_file(&mut img, file_path).unwrap();
+        let file_path = asset("texts/commedia.txt");
+        let file_path_str = file_path.to_str().unwrap();
+        Encoder::encode_file(&mut img, file_path_str).unwrap();
         let extracted_data = Decoder::decode_string(&img).unwrap();
-        let expected_data = std::fs::read_to_string(file_path).unwrap();
+        let expected_data = std::fs::read_to_string(file_path_str).unwrap();
         assert_eq!(expected_data, extracted_data);
     }
 
     #[test]
     fn test_binary_encoding() {
-        let mut img = ImageReader::open("images/dyno.png")
+        let mut img = ImageReader::open(asset("images/dyno.png"))
             .unwrap()
             .decode()
             .unwrap();
