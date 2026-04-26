@@ -1,15 +1,4 @@
-use std::io::Cursor;
 use image::{GenericImage, GenericImageView, ImageReader};
-
-fn encode() {
-    // This function is a placeholder for the encoding logic.
-    // You can implement the logic to hide data in the image here.
-}
-
-fn decode() {
-    // This function is a placeholder for the decoding logic.
-    // You can implement the logic to extract hidden data from the image here.
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut img = ImageReader::open("images/stego.jpg")?.decode()?;
@@ -50,38 +39,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut b = pixel[2];
         let a = pixel[3];
 
-        if !data_binary.is_empty() {
-            // Embed the data bit into the least significant bit of the color channels
+        for j in 0..3 {
+            if data_binary.is_empty() {
+                break;
+            }
+
             let bit = data_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
 
             if bit == 0 {
-                r = (r & 0xFE) | 0;
+                match j {
+                    0 => r = (r & 0xFE) | 0,
+                    1 => g = (g & 0xFE) | 0,
+                    2 => b = (b & 0xFE) | 0,
+                    _ => unreachable!(),
+                }
             } else {
-                r = (r & 0xFE) | 1;
+                match j {
+                    0 => r = (r & 0xFE) | 1,
+                    1 => g = (g & 0xFE) | 1,
+                    2 => b = (b & 0xFE) | 1,
+                    _ => unreachable!(),
+                }
             }
 
-            data_binary.remove(0);
-        }
-        if !data_binary.is_empty() {
-            let bit = data_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
-            
-            if bit == 0 {
-                g = (g & 0xFE) | 0;
-            } else {
-                g = (g & 0xFE) | 1;
-            }
-            
-            data_binary.remove(0);
-        }
-        if !data_binary.is_empty() {
-            let bit = data_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
-            
-            if bit == 0 {
-                b = (b & 0xFE) | 0;
-            } else {
-                b = (b & 0xFE) | 1;
-            }
-            
             data_binary.remove(0);
         }
 
@@ -122,16 +102,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Extracted data length: {}", data_length);
 
     let mut i = 0; // Start after the first 32 bits which represent the data length
-    let offset = 32 / 3; // Number of pixels used to store the data length
-    while i < (data_length as usize * 8) {
+    while i < (data_length as usize * 8) + 32 {
         let x = (i / 3) as u32;
         let y = (i / 3) as u32 / width;
 
+        if x <= 10 {
+            i += 3; // Skip the first 11 pixels (33 bits) which contain the data length
+            continue; // Skip the first 11 pixels which contain the data length
+        }
 
         let pixel = img.get_pixel(x, y);
 
         for j in 0..3 {
-            if i >= (data_length as usize * 8) {
+            if i >= (data_length as usize * 8) + 32 {
                 break;
             }
 
@@ -142,6 +125,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    println!("extracted_data_binary length: {}", extracted_data_binary.len());
     println!("Extracted binary data: {}", extracted_data_binary);
     let extracted_data_bytes = extracted_data_binary
         .as_bytes()
