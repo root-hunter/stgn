@@ -1,16 +1,33 @@
 use image::ImageReader;
-use stng::{decoder::decode_file, encoder::encode_file};
+use stng::{decoder::Decoder, encoder::Encoder, utils::bytes_to_human};
+use tracing::{info, debug, error};
+use tracing_subscriber;
+
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut img = ImageReader::open("images/dyno.png")?.decode()?;
+    tracing_subscriber::fmt::init();
+    let image_path = "images/dyno.png";
+
+    let mut img = ImageReader::open(image_path)?.decode()?;
+
+    info!("Encoding file into image...");
+
+    let width = img.width();
+    let height = img.height();
+    info!("Image path: {}", image_path);
+    info!("Image format: {:?}", img.color());
+    info!("Image dimensions: {}x{}", width, height);
+    info!("Image encoding capacity: {}", bytes_to_human(((width * height * 3) / 8 - 4).into())); // -4 for header
 
     let file_path = "texts/commedia.txt";
 
-    let img = encode_file(&mut img, file_path)?;
+    let img = Encoder::encode_file(&mut img, file_path)?;
     img.save("images/encoded_image.png")?;
 
+    let img2 = ImageReader::open("images/encoded_image.png")?.decode()?;
+
     let output_path = "texts/output.txt";
-    decode_file(&img, output_path)?;
+    Decoder::decode_file(&img2, output_path)?;
 
     Ok(())
 }
