@@ -52,7 +52,16 @@
         <canvas id="encode-preview"></canvas>
       </div>
 
-      <div class="field">
+      <div id="capacity-bar" hidden>
+        <div class="capacity-header">
+          <span class="capacity-label">Image capacity</span>
+          <span id="capacity-text" class="capacity-value"></span>
+        </div>
+        <div class="capacity-track">
+          <div id="capacity-fill" class="capacity-fill"></div>
+        </div>
+        <div class="capacity-sub" id="capacity-sub"></div>
+      </div>
         <label for="encode-message">
           Secret message
           <span class="char-count" id="encode-char-count">0 characters</span>

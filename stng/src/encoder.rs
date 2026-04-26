@@ -80,4 +80,8 @@ impl Encoder {
     ) -> Result<(), Box<dyn std::error::Error>> {
         Encoder::encode(img, data)
     }
+
+    pub fn max_capacity(img: &DynamicImage) -> usize {
+        (img.width() * img.height() * 3 / 8) as usize
+    }
 }

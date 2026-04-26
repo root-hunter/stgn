@@ -1,6 +1,6 @@
 // I file WASM generati da wasm-pack vengono messi in pkg/
 // Esegui: wasm-pack build stng-wasm --target web --out-dir ../docs/pkg
-import init, { encode_string, decode_string } from "./pkg/stng_wasm.js";
+import init, { encode_string, decode_string, encode_max_capacity } from "./pkg/stng_wasm.js";
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 
@@ -86,16 +86,49 @@ const encodeBtn          = document.getElementById("encode-btn");
 const encodeResult       = document.getElementById("encode-result");
 const encodeDownload     = document.getElementById("encode-download");
 const encodeOutputCanvas = document.getElementById("encode-output-preview");
+const capacityBar        = document.getElementById("capacity-bar");
+const capacityText       = document.getElementById("capacity-text");
+const capacityFill       = document.getElementById("capacity-fill");
+const capacitySub        = document.getElementById("capacity-sub");
 
-let encodeFile = null;
+let encodeFile    = null;
+let maxCapacity   = 0;
 
-setupDropzone("encode-dropzone", "encode-image", "encode-preview", (file) => {
+function formatBytes(n) {
+  if (n >= 1024 * 1024) return (n / (1024 * 1024)).toFixed(2) + " MB";
+  if (n >= 1024)        return (n / 1024).toFixed(1) + " KB";
+  return n + " B";
+}
+
+function updateCapacityBar() {
+  if (!maxCapacity) return;
+  const used    = new TextEncoder().encode(encodeMessageInput.value).length;
+  const pct     = Math.min(used / maxCapacity * 100, 100);
+  const free    = Math.max(maxCapacity - used, 0);
+
+  capacityFill.style.width = pct + "%";
+  capacityFill.classList.toggle("warn", pct >= 70 && pct < 90);
+  capacityFill.classList.toggle("full", pct >= 90);
+  capacitySub.textContent  = `${formatBytes(used)} used · ${formatBytes(free)} free`;
+
+  encodeCharCount.textContent = `${used} / ${maxCapacity} bytes`;
+  encodeCharCount.style.color = pct >= 90 ? "var(--error)" : pct >= 70 ? "var(--warning)" : "";
+}
+
+setupDropzone("encode-dropzone", "encode-image", "encode-preview", async (file) => {
   encodeFile = file;
+  try {
+    const bytes   = await fileToBytes(file);
+    maxCapacity   = encode_max_capacity(bytes);
+    capacityText.textContent = formatBytes(maxCapacity);
+    capacityBar.hidden = false;
+    updateCapacityBar();
+  } catch { /* ignore capacity errors */ }
   updateEncodeBtn();
 });
 
 encodeMessageInput.addEventListener("input", () => {
-  encodeCharCount.textContent = `${encodeMessageInput.value.length} characters`;
+  updateCapacityBar();
   updateEncodeBtn();
 });
 
