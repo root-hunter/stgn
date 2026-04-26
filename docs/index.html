@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>stng — WASM Steganography</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
   <!-- ── Animated background ── -->
@@ -19,7 +23,8 @@
   <header>
     <div class="badge">WebAssembly · Rust · LSB</div>
     <h1><span class="gradient-text">stng</span></h1>
-    <p class="subtitle">Hide secret messages inside your images.<br>LSB steganography compiled to WebAssembly with Rust.</p>
+    <p class="subtitle">Hide secret messages inside your images.<br>LSB steganography compiled to WebAssembly with Rust.
+    </p>
     <div class="hero-chips">
       <span class="chip">🔒 Zero server</span>
       <span class="chip">⚡ Instant</span>
@@ -127,10 +132,10 @@
           <span class="result-icon success">✅</span>
           <strong>Image encoded successfully!</strong>
         </div>
+        <canvas id="encode-output-preview"></canvas>
         <a id="encode-download" class="btn btn-success w-100" download="stng_encoded.png">
           ⬇ Download image
         </a>
-        <canvas id="encode-output-preview"></canvas>
       </div>
     </section>
 
@@ -163,7 +168,8 @@
         <div id="decode-key-field" class="key-field" hidden>
           <label for="decode-key">Password / Key</label>
           <div class="key-input-wrap">
-            <input type="password" id="decode-key" placeholder="Enter the secret key…" autocomplete="current-password" />
+            <input type="password" id="decode-key" placeholder="Enter the secret key…"
+              autocomplete="current-password" />
             <button class="key-toggle" data-target="decode-key" title="Show/hide">👁</button>
           </div>
         </div>
@@ -200,4 +206,5 @@
 
   <script type="module" src="app.js"></script>
 </body>
+
 </html>
