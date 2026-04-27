@@ -1,3 +1,38 @@
+// ── Decode from PDF ─────────────────────────────────────────────────────────
+const decodeFromPdfBtn = document.getElementById("decode-from-pdf-btn");
+const decodePdfInput = document.getElementById("decode-pdf");
+
+decodeFromPdfBtn.addEventListener("click", () => {
+  decodePdfInput.click();
+});
+
+decodePdfInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    decodeBtn.disabled = true;
+    decodeFromPdfBtn.disabled = true;
+    decodeFromPdfBtn.innerHTML = `<span class="btn-icon">⏳</span> Decoding…`;
+    const pdfBytes = new Uint8Array(await file.arrayBuffer());
+    // WASM: estrai immagine
+    const imgBytes = extract_image_from_pdf(pdfBytes);
+    // Decodifica come immagine
+    const enc = decodeEncrypt.getEncryption();
+    const key = decodeEncrypt.getKeyBytes();
+    const json = decode_payload(imgBytes, enc, key);
+    const parsed = JSON.parse(json);
+    renderDecodeEntries(parsed);
+    decodeResult.hidden = false;
+    showSuccess(`${parsed.length} ${parsed.length === 1 ? "entry" : "entries"} estratte dal PDF!`);
+  } catch (err) {
+    showError(err?.toString() ?? "No payload found or unsupported PDF");
+  } finally {
+    decodeBtn.disabled = false;
+    decodeFromPdfBtn.disabled = false;
+    decodeFromPdfBtn.innerHTML = `⬇ Decode from PDF`;
+    decodePdfInput.value = "";
+  }
+});
 // ── Service Worker registration for PWA ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -44,7 +79,35 @@ import init, {
   encode_payload, decode_payload,
   encode_max_capacity, encode_payload_size,
   zip_encoded_image,
+  embed_image_in_pdf,
+  extract_image_from_pdf,
 } from "./pkg/stgn_wasm.js";
+// ── Export as PDF (WASM) ─────────────────────────────────────────────────────
+document.getElementById("encode-export-pdf").addEventListener("click", async () => {
+  try {
+    const suffix = getDateSuffix();
+    const url = encodeDownload.href;
+    if (!url) return showError("No encoded image to export");
+    const response = await fetch(url);
+    const imgBlob = await response.blob();
+    const imgBytes = new Uint8Array(await imgBlob.arrayBuffer());
+    // WASM: crea PDF
+    const pdfBytes = embed_image_in_pdf(imgBytes);
+    const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const a = document.createElement("a");
+    a.href = pdfUrl;
+    a.download = `stgn_encoded_${suffix}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(pdfUrl);
+    }, 100);
+  } catch (err) {
+    showError("PDF export failed: " + (err?.toString() ?? "Unknown error"));
+  }
+});
 // ── Download as ZIP (WASM, no external deps) ──
 document.getElementById("encode-download-zip").addEventListener("click", async () => {
   try {

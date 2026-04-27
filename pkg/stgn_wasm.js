@@ -89,6 +89,22 @@ export function decode_string_secure(image_bytes, encryption, key) {
 
 /**
  * @param {Uint8Array} image_bytes
+ * @returns {Uint8Array}
+ */
+export function embed_image_in_pdf(image_bytes) {
+    const ptr0 = passArray8ToWasm0(image_bytes, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.embed_image_in_pdf(ptr0, len0);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
+ * @param {Uint8Array} image_bytes
  * @returns {number}
  */
 export function encode_max_capacity(image_bytes) {
@@ -130,16 +146,16 @@ export function encode_payload(image_bytes, entries_json, encryption, key, compr
 /**
  * @param {string} entries_json
  * @param {string} encryption
- * @param {Uint8Array} key
+ * @param {Uint8Array} _key
  * @param {boolean} compress
  * @returns {number}
  */
-export function encode_payload_size(entries_json, encryption, key, compress) {
+export function encode_payload_size(entries_json, encryption, _key, compress) {
     const ptr0 = passStringToWasm0(entries_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(encryption, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
-    const ptr2 = passArray8ToWasm0(key, wasm.__wbindgen_malloc);
+    const ptr2 = passArray8ToWasm0(_key, wasm.__wbindgen_malloc);
     const len2 = WASM_VECTOR_LEN;
     const ret = wasm.encode_payload_size(ptr0, len0, ptr1, len1, ptr2, len2, compress);
     if (ret[2]) {
@@ -194,6 +210,22 @@ export function encode_string_secure(image_bytes, message, encryption, key, comp
 }
 
 /**
+ * @param {Uint8Array} pdf_bytes
+ * @returns {Uint8Array}
+ */
+export function extract_image_from_pdf(pdf_bytes) {
+    const ptr0 = passArray8ToWasm0(pdf_bytes, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.extract_image_from_pdf(ptr0, len0);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v2 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v2;
+}
+
+/**
  * Create a ZIP archive containing the encoded image. Returns the ZIP as Vec<u8>.
  * @param {Uint8Array} image_bytes
  * @param {string} filename
@@ -243,6 +275,9 @@ function __wbg_get_imports() {
             const ret = arg0.crypto;
             return ret;
         },
+        __wbg_getRandomValues_76dfc69825c9c552: function() { return handleError(function (arg0, arg1) {
+            globalThis.crypto.getRandomValues(getArrayU8FromWasm0(arg0, arg1));
+        }, arguments); },
         __wbg_getRandomValues_c44a50d8cfdaebeb: function() { return handleError(function (arg0, arg1) {
             arg0.getRandomValues(arg1);
         }, arguments); },

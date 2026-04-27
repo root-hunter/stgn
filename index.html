@@ -140,6 +140,9 @@
         <button id="encode-download-zip" class="btn btn-secondary w-100" style="margin-top:0.5em;">
           ⬇ Download as ZIP
         </button>
+        <button id="encode-export-pdf" class="btn btn-secondary w-100" style="margin-top:0.5em;">
+          ⬇ Export as PDF
+        </button>
       </div>
     </section>
 
@@ -150,6 +153,7 @@
         <p class="panel-desc">Upload an image with a hidden message to extract it.</p>
       </div>
 
+
       <div class="dropzone" id="decode-dropzone">
         <input type="file" id="decode-image" accept="image/png,image/jpeg" />
         <div class="dropzone-inner" id="decode-dropzone-inner">
@@ -157,6 +161,13 @@
           <p class="dropzone-text">Drag an image here<br><span>or click to select one</span></p>
         </div>
         <canvas id="decode-preview"></canvas>
+      </div>
+
+      <div class="action-row" style="margin-top:0.5em;">
+        <input type="file" id="decode-pdf" accept="application/pdf" style="display:none;" />
+        <button id="decode-from-pdf-btn" class="btn btn-secondary w-100">
+          ⬇ Decode from PDF
+        </button>
       </div>
 
       <!-- Encryption options -->
