@@ -15,10 +15,9 @@ pub fn extract_image_from_pdf(pdf_bytes: &[u8]) -> Result<Vec<u8>, JsValue> {
 pub fn zip_encoded_image(image_bytes: &[u8], filename: &str) -> Result<Vec<u8>, JsValue> {
     use std::io::Write;
     use zip::ZipWriter;
-    use zip::write::FileOptions;
     let mut buf = Vec::new();
     let mut zip = ZipWriter::new(std::io::Cursor::new(&mut buf));
-    let options = FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let options: SimpleFileOptions = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     zip.start_file(filename, options)
         .map_err(|e| JsValue::from_str(&format!("ZIP start_file error: {e}")))?;
     zip.write_all(image_bytes)
@@ -106,6 +105,8 @@ use stgn::core::data::{Data, DataElement, DataType};
 use stgn::core::decoder::Decoder;
 use stgn::core::encoder::Encoder;
 use wasm_bindgen::prelude::*;
+use zip::unstable::write::FileOptionsExt;
+use zip::write::SimpleFileOptions;
 
 fn parse_secret(encryption: &str, key: &[u8]) -> Option<EncryptionSecret> {
     match encryption {
