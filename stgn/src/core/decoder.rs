@@ -3,7 +3,7 @@ use postcard::from_bytes;
 
 use crate::core::{
     auth::{EncryptionSecret, EncryptionType, SecureContext},
-    data::{Data},
+    data::Data,
     header::Header,
 };
 

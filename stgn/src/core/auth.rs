@@ -26,12 +26,18 @@ impl SecureContext {
         SecureContext { encryption_type }
     }
 
-    pub fn encrypt(&self, data: &[u8], secret: &EncryptionSecret) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub fn encrypt(
+        &self,
+        data: &[u8],
+        secret: &EncryptionSecret,
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         match (&self.encryption_type, secret) {
             (EncryptionType::None, _) => Ok(data.to_vec()),
-            (EncryptionType::Xor, EncryptionSecret::Xor(key)) => {
-                Ok(data.iter().zip(key.iter().cycle()).map(|(b, k)| b ^ k).collect())
-            }
+            (EncryptionType::Xor, EncryptionSecret::Xor(key)) => Ok(data
+                .iter()
+                .zip(key.iter().cycle())
+                .map(|(b, k)| b ^ k)
+                .collect()),
             (EncryptionType::Aes256, EncryptionSecret::Aes256(key)) => {
                 let key = Key::<Aes256Gcm>::from_slice(&key[..32]);
                 let cipher = Aes256Gcm::new(key);
@@ -50,12 +56,18 @@ impl SecureContext {
         }
     }
 
-    pub fn decrypt(&self, data: &[u8], secret: &EncryptionSecret) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub fn decrypt(
+        &self,
+        data: &[u8],
+        secret: &EncryptionSecret,
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         match (&self.encryption_type, secret) {
             (EncryptionType::None, _) => Ok(data.to_vec()),
-            (EncryptionType::Xor, EncryptionSecret::Xor(key)) => {
-                Ok(data.iter().zip(key.iter().cycle()).map(|(b, k)| b ^ k).collect())
-            }
+            (EncryptionType::Xor, EncryptionSecret::Xor(key)) => Ok(data
+                .iter()
+                .zip(key.iter().cycle())
+                .map(|(b, k)| b ^ k)
+                .collect()),
             (EncryptionType::Aes256, EncryptionSecret::Aes256(key)) => {
                 if data.len() < 12 {
                     return Err("Ciphertext too short (missing nonce)".into());

@@ -1,6 +1,6 @@
+use flate2::{Compression, write::DeflateEncoder};
 use image::DynamicImage;
 use postcard::{to_allocvec, to_slice};
-use flate2::{write::DeflateEncoder, Compression};
 
 use crate::core::{
     auth::{EncryptionSecret, EncryptionType, SecureContext},
@@ -148,7 +148,12 @@ impl Encoder {
         secret: Option<&EncryptionSecret>,
         compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        Encoder::encode_payload(img, &Data::from_bytes_payload(data.to_vec()), secret, compress)
+        Encoder::encode_payload(
+            img,
+            &Data::from_bytes_payload(data.to_vec()),
+            secret,
+            compress,
+        )
     }
 
     /// Encode multiple named entries in a single image.

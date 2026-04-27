@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 pub struct Header {
-    pub magic: [u8; 4], // "STGN"
-    pub length: u32,    // Lunghezza dei dati nascosti in byte
+    pub magic: [u8; 4],   // "STGN"
+    pub length: u32,      // Lunghezza dei dati nascosti in byte
     pub compressed: bool, // Indica se il payload è compresso
 }
 

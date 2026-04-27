@@ -6,10 +6,10 @@ use stgn::{
 };
 use tracing::info;
 
+use image::GenericImageView;
+use lopdf::content::{Content, Operation};
 use lopdf::dictionary;
 use lopdf::{Document, Object, Stream};
-use lopdf::content::{Content, Operation};
-use image::GenericImageView;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();
@@ -82,34 +82,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // --- Parametri di posizione e dimensione dell'immagine nella pagina ---
     // La pagina è 595 x 842 pt (formato A4)
     // In PDF, Y=0 è in basso a sinistra
-    let draw_width: i64  = 300; // larghezza visualizzata in punti PDF
+    let draw_width: i64 = 300; // larghezza visualizzata in punti PDF
     let draw_height: i64 = 200; // altezza visualizzata in punti PDF
-    let x: i64 = 100;           // posizione X (da sinistra)
-    let y: i64 = 400;           // posizione Y (dal basso)
+    let x: i64 = 100; // posizione X (da sinistra)
+    let y: i64 = 400; // posizione Y (dal basso)
 
     // Content stream: disegna l'immagine con la matrice di trasformazione
     // cm = [scaleX 0 0 scaleY translateX translateY]
     // Do = disegna il XObject con il nome specificato
     let content = Content {
         operations: vec![
-            Operation::new("q", vec![]),   // salva stato grafico
-            Operation::new("cm", vec![
-                draw_width.into(),   // scaleX  → larghezza
-                0.into(),
-                0.into(),
-                draw_height.into(),  // scaleY  → altezza
-                x.into(),            // translateX
-                y.into(),            // translateY
-            ]),
+            Operation::new("q", vec![]), // salva stato grafico
+            Operation::new(
+                "cm",
+                vec![
+                    draw_width.into(), // scaleX  → larghezza
+                    0.into(),
+                    0.into(),
+                    draw_height.into(), // scaleY  → altezza
+                    x.into(),           // translateX
+                    y.into(),           // translateY
+                ],
+            ),
             Operation::new("Do", vec!["Im1".into()]), // disegna immagine
-            Operation::new("Q", vec![]),   // ripristina stato grafico
+            Operation::new("Q", vec![]),              // ripristina stato grafico
         ],
     };
 
-    let content_id = doc.add_object(Stream::new(
-        dictionary! {},
-        content.encode().unwrap(),
-    ));
+    let content_id = doc.add_object(Stream::new(dictionary! {}, content.encode().unwrap()));
 
     // Pagina
     let page_id = doc.add_object(dictionary! {

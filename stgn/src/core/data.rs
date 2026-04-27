@@ -48,7 +48,9 @@ pub struct Data {
 
 impl Data {
     pub fn new() -> Self {
-        Data { elements: Vec::new() }
+        Data {
+            elements: Vec::new(),
+        }
     }
 
     /// Builder-style push.
@@ -108,7 +110,10 @@ impl Data {
 
     /// Returns the first entry as a String (tries UTF-8 on any type).
     pub fn first_as_string(&self) -> Option<String> {
-        self.elements.first().and_then(|e| e.as_str().ok()).map(|s| s.to_string())
+        self.elements
+            .first()
+            .and_then(|e| e.as_str().ok())
+            .map(|s| s.to_string())
     }
 }
 
