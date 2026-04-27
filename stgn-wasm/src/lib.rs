@@ -1,3 +1,15 @@
+use stgn::embedding::pdf::PdfEmbedding;
+#[wasm_bindgen]
+pub fn embed_image_in_pdf(image_bytes: &[u8]) -> Result<Vec<u8>, JsValue> {
+    let img = image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    PdfEmbedding::embed(img).map_err(|e| JsValue::from_str(&e))
+}
+
+#[wasm_bindgen]
+pub fn extract_image_from_pdf(pdf_bytes: &[u8]) -> Result<Vec<u8>, JsValue> {
+    let img = PdfEmbedding::extract(pdf_bytes).map_err(|e| JsValue::from_str(&e))?;
+    img_to_png_bytes(img)
+}
 /// Create a ZIP archive containing the encoded image. Returns the ZIP as Vec<u8>.
 #[wasm_bindgen]
 pub fn zip_encoded_image(image_bytes: &[u8], filename: &str) -> Result<Vec<u8>, JsValue> {
