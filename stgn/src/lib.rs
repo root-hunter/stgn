@@ -1,4 +1,5 @@
 pub mod core;
+pub mod embedding;
 pub mod utils;
 
 pub const MAGIC: &[u8; 4] = b"STGN";
