@@ -30,7 +30,6 @@ impl Encoder {
         compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let auth = SecureContext::new(match secret {
-            Some(EncryptionSecret::Xor(_)) => EncryptionType::Xor,
             Some(EncryptionSecret::Aes256(_)) => EncryptionType::Aes256,
             _ => EncryptionType::None,
         });

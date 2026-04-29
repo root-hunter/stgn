@@ -108,7 +108,6 @@ use zip::write::SimpleFileOptions;
 
 fn parse_secret(encryption: &str, key: &[u8]) -> Option<EncryptionSecret> {
     match encryption {
-        "xor" => Some(EncryptionSecret::Xor(key.to_vec())),
         "aes256" => {
             let mut k = [0u8; 32];
             let len = key.len().min(32);

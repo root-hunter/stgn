@@ -145,22 +145,6 @@ mod tests {
     }
 
     #[test]
-    fn test_xor_encryption() {
-        use crate::core::auth::EncryptionSecret;
-
-        let mut img = ImageReader::open(asset("images/dyno.png"))
-            .unwrap()
-            .decode()
-            .unwrap();
-
-        let data = "This is a secret message that will be encrypted using XOR.";
-        let secret = EncryptionSecret::Xor(vec![0xAA, 0x55]); // Chiave fittizia per il test
-        Encoder::encode_string(&mut img, data, Some(&secret), false).unwrap();
-        let extracted_data = Decoder::decode_string(&img, Some(&secret)).unwrap();
-        assert_eq!(data, extracted_data);
-    }
-
-    #[test]
     fn test_multi_payload() {
         use crate::core::data::{Data, DataElement};
 
