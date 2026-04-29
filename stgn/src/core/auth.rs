@@ -6,13 +6,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 pub enum EncryptionType {
     None,
-    Xor,
     Aes256,
 }
 
 pub enum EncryptionSecret {
     None,
-    Xor(Vec<u8>),
     Aes256(Vec<u8>), // deve essere esattamente 32 byte
 }
 
@@ -33,11 +31,6 @@ impl SecureContext {
     ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         match (&self.encryption_type, secret) {
             (EncryptionType::None, _) => Ok(data.to_vec()),
-            (EncryptionType::Xor, EncryptionSecret::Xor(key)) => Ok(data
-                .iter()
-                .zip(key.iter().cycle())
-                .map(|(b, k)| b ^ k)
-                .collect()),
             (EncryptionType::Aes256, EncryptionSecret::Aes256(key)) => {
                 let key = Key::<Aes256Gcm>::from_slice(&key[..32]);
                 let cipher = Aes256Gcm::new(key);
@@ -63,11 +56,6 @@ impl SecureContext {
     ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         match (&self.encryption_type, secret) {
             (EncryptionType::None, _) => Ok(data.to_vec()),
-            (EncryptionType::Xor, EncryptionSecret::Xor(key)) => Ok(data
-                .iter()
-                .zip(key.iter().cycle())
-                .map(|(b, k)| b ^ k)
-                .collect()),
             (EncryptionType::Aes256, EncryptionSecret::Aes256(key)) => {
                 if data.len() < 12 {
                     return Err("Ciphertext too short (missing nonce)".into());

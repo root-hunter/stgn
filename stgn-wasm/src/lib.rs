@@ -78,7 +78,6 @@ pub fn encode_payload_size(
     };
 
     let encryption_type = match encryption {
-        "xor" => EncryptionType::Xor,
         "aes256" => EncryptionType::Aes256,
         _ => EncryptionType::None,
     };
@@ -105,7 +104,6 @@ use stgn::core::data::{Data, DataElement, DataType};
 use stgn::core::decoder::Decoder;
 use stgn::core::encoder::Encoder;
 use wasm_bindgen::prelude::*;
-use zip::unstable::write::FileOptionsExt;
 use zip::write::SimpleFileOptions;
 
 fn parse_secret(encryption: &str, key: &[u8]) -> Option<EncryptionSecret> {
