@@ -7,3 +7,4 @@ edition = "2024"
 image = { workspace = true }
 stgn = { path = "../stgn" }
 clap = { version = "4.0", features = ["derive"] }
+rpassword = "7.5.1"
