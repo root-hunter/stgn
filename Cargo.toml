@@ -1,6 +1,11 @@
 [workspace]
 members = [
-    "stgn",
+    "stgn", "stgn-cli",
     "stgn-wasm",
 ]
 resolver = "2"
+
+
+
+[workspace.dependencies]
+image = "0.25"

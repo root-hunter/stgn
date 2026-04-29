@@ -22,7 +22,7 @@ impl DataElement {
         }
     }
 
-    pub fn binary(name: impl Into<String>, content: Vec<u8>) -> Self {
+    pub fn bytes(name: impl Into<String>, content: Vec<u8>) -> Self {
         DataElement {
             name: name.into(),
             data_type: DataType::Binary,
@@ -70,12 +70,12 @@ impl Data {
 
     /// Shortcut: single binary entry named "data".
     pub fn from_bytes_payload(content: Vec<u8>) -> Self {
-        Data::new().add(DataElement::binary("data", content))
+        Data::new().add(DataElement::bytes("data", content))
     }
 
     /// Shortcut: single binary entry with the given filename.
     pub fn from_file(name: impl Into<String>, content: Vec<u8>) -> Self {
-        Data::new().add(DataElement::binary(name, content))
+        Data::new().add(DataElement::bytes(name, content))
     }
 
     // ── Lookup helpers ────────────────────────────────────────────────────────

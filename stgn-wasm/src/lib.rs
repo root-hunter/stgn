@@ -54,7 +54,7 @@ pub fn encode_payload_size(
                 let bytes = B64
                     .decode(val)
                     .map_err(|e| JsValue::from_str(&format!("Base64 decode error: {e}")))?;
-                data.push(DataElement::binary(name, bytes));
+                data.push(DataElement::bytes(name, bytes));
             }
             _ => {
                 data.push(DataElement::text(name, val));
@@ -201,7 +201,7 @@ pub fn encode_payload(
                 let bytes = B64
                     .decode(val)
                     .map_err(|e| JsValue::from_str(&format!("Base64 decode error: {e}")))?;
-                data.push(DataElement::binary(name, bytes));
+                data.push(DataElement::bytes(name, bytes));
             }
             _ => {
                 data.push(DataElement::text(name, val));

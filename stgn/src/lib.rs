@@ -4,6 +4,12 @@ pub mod utils;
 
 pub const MAGIC: &[u8; 4] = b"STGN";
 
+pub use core::data::{Data, DataElement, DataType};
+pub use core::decoder::Decoder;
+pub use core::encoder::Encoder;
+pub use core::auth::{EncryptionSecret, EncryptionType};
+pub use embedding::pdf::PdfEmbedding;
+
 mod tests {
 
     #[test]
@@ -156,7 +162,7 @@ mod tests {
         let payload = Data::new()
             .add(DataElement::text("title", "Hello, world!"))
             .add(DataElement::text("note", "This is a second entry"))
-            .add(DataElement::binary("raw", vec![1, 2, 3, 4, 5]));
+            .add(DataElement::bytes("raw", vec![1, 2, 3, 4, 5]));
 
         Encoder::encode_payload(&mut img, &payload, None, false).unwrap();
 
