@@ -109,3 +109,12 @@ help:
 	@echo ""
 	@grep -E '^##' Makefile | sed 's/^## /  /'
 	@echo ""
+
+cli-help:
+	@echo ""
+	@echo "CLI examples:"
+	@echo ""
+	@echo "  make run ARGS=\"encode -i input.png -o output.png --data-strings 'secret message'\""
+	@echo "  make run ARGS=\"decode -i output.png --data-strings 'secret message'\""
+	@echo "  make run ARGS=\"max-capacity -i input.png\""
+	@echo ""

@@ -22,17 +22,16 @@ struct EncyptSettings {
         long = "output",
         help = "Path to save the output image (for encryption) or decoded data (for decryption)"
     )]
-    output_file: Option<String>,
+    output: Option<String>,
 
-    #[arg(short = 's', long, help = "Strings to encode into the image")]
-    data_strings: Vec<String>,
+    #[arg(short = 's', help = "Strings to encode into the image")]
+    strings: Vec<String>,
 
-    #[arg(short = 'f', long, help = "File paths to encode into the image")]
-    data_files: Vec<String>,
+    #[arg(short = 'f', help = "File paths to encode into the image")]
+    files: Vec<String>,
 
     #[arg(
         short = 'c',
-        long,
         help = "Whether to compress the data before encoding",
         default_value_t = true
     )]
@@ -43,7 +42,6 @@ struct EncyptSettings {
 struct DecryptSettings {
     #[arg(
         short = 'e',
-        long,
         help = "Export folder for decoded files (for decryption)",
         default_value = "decoded_output"
     )]
@@ -51,7 +49,6 @@ struct DecryptSettings {
 
     #[arg(
         short = 's',
-        long,
         help = "File name for decoded strings (for decryption)",
         default_value = "decoded_strings.txt"
     )]
@@ -62,7 +59,6 @@ struct DecryptSettings {
 struct MaxCapacitySettings {
     #[arg(
         short = 'b',
-        long,
         help = "Show capacity in bytes instead of human readable format"
     )]
     bytes: bool,
@@ -70,8 +66,13 @@ struct MaxCapacitySettings {
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq, Hash)]
 enum Commands {
+    #[command(about = "Encode data into an image")]
     Encode(EncyptSettings),
+    
+    #[command(about = "Decode data from an image")]
     Decode(DecryptSettings),
+
+    #[command(about = "Show the maximum capacity of an image")]
     MaxCapacity(MaxCapacitySettings),
 }
 
@@ -82,13 +83,12 @@ struct Args {
     command: Commands,
 
     #[arg(
-        short = 'f',
-        long = "file",
+        short = 'i',
         help = "Path to the image file to encode into or decode from"
     )]
-    input_file: String,
+    input: String,
 
-    #[arg(short='e', long, help = "Encryption method to use (for encryption)", value_enum, default_value_t = EncryptionType::None)]
+    #[arg(short='e', help = "Encryption method to use (for encryption)", value_enum, default_value_t = EncryptionType::None)]
     encryption: EncryptionType,
 }
 
@@ -138,26 +138,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match args.command {
         Commands::Encode(enc_settings) => {
-            let mut img = image::open(args.input_file.clone())?;
-            if enc_settings.data_strings.is_empty() && enc_settings.data_files.is_empty() {
+            let mut img = image::open(args.input.clone())?;
+            if enc_settings.strings.is_empty() && enc_settings.files.is_empty() {
                 eprintln!("No data provided to encode. Use --data-strings or --data-files.");
                 return Ok(());
             }
 
             let mut data = Data::new();
-            for s in enc_settings.data_strings {
-                data.push(DataElement::text("string", &s));
+
+            for (i, s) in enc_settings.strings.iter().enumerate() {
+                data.push(DataElement::text(&format!("string_{}", i + 1), s));
             }
-            for f in enc_settings.data_files {
-                let content = fs::read(f)?;
-                data.push(DataElement::bytes("file", content));
+            for f in enc_settings.files {
+                let content = fs::read(&f)?;
+                let file_name = std::path::Path::new(&f)
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("file");
+                data.push(DataElement::bytes(file_name, content));
             }
 
             Encoder::encode_payload(&mut img, &data, secret, enc_settings.compress)?;
 
             if let Err(e) = img.save(
                 enc_settings
-                    .output_file
+                    .output
                     .unwrap_or_else(|| "output.png".to_string()),
             ) {
                 eprintln!("Failed to save image: {e}");
@@ -167,7 +172,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::Decode(_dec_settings) => {
             println!("Decoding data from image...");
-            let img = image::open(args.input_file.clone())?;
+            let img = image::open(args.input.clone())?;
             let data = Decoder::decode_payload(&img, secret)?;
 
             // create export folder if it doesn't exist
@@ -209,7 +214,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         Commands::MaxCapacity(max_capacity_settings) => {
-            let img = image::open(args.input_file.clone())?;
+            let img = image::open(args.input.clone())?;
             let capacity = Encoder::max_capacity(&img);
             let capacity_str = if max_capacity_settings.bytes {
                 capacity.to_string() + " bytes"
