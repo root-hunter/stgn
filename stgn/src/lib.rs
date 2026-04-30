@@ -4,10 +4,10 @@ pub mod utils;
 
 pub const MAGIC: &[u8; 4] = b"STGN";
 
+pub use core::auth::{EncryptionSecret, EncryptionType};
 pub use core::data::{Data, DataElement, DataType};
 pub use core::decoder::Decoder;
 pub use core::encoder::Encoder;
-pub use core::auth::{EncryptionSecret, EncryptionType};
 pub use embedding::pdf::PdfEmbedding;
 
 mod tests {

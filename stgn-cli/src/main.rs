@@ -68,7 +68,7 @@ struct MaxCapacitySettings {
 enum Commands {
     #[command(about = "Encode data into an image")]
     Encode(EncyptSettings),
-    
+
     #[command(about = "Decode data from an image")]
     Decode(DecryptSettings),
 

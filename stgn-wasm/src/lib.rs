@@ -1,7 +1,8 @@
 use stgn::embedding::pdf::PdfEmbedding;
 #[wasm_bindgen]
 pub fn embed_image_in_pdf(image_bytes: &[u8]) -> Result<Vec<u8>, JsValue> {
-    let img = image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let img =
+        image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     PdfEmbedding::embed(img).map_err(|e| JsValue::from_str(&e))
 }
 
@@ -17,7 +18,8 @@ pub fn zip_encoded_image(image_bytes: &[u8], filename: &str) -> Result<Vec<u8>, 
     use zip::ZipWriter;
     let mut buf = Vec::new();
     let mut zip = ZipWriter::new(std::io::Cursor::new(&mut buf));
-    let options: SimpleFileOptions = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let options: SimpleFileOptions =
+        SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     zip.start_file(filename, options)
         .map_err(|e| JsValue::from_str(&format!("ZIP start_file error: {e}")))?;
     zip.write_all(image_bytes)

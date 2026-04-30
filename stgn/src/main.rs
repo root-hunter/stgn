@@ -1,6 +1,8 @@
 use image::ImageReader;
 use stgn::{
-    core::{decoder::Decoder, encoder::Encoder}, embedding::pdf::PdfEmbedding, utils::{bytes_to_human, init_logging}
+    core::{decoder::Decoder, encoder::Encoder},
+    embedding::pdf::PdfEmbedding,
+    utils::{bytes_to_human, init_logging},
 };
 use tracing::info;
 
@@ -33,8 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let output_path = "texts/output.txt";
     Decoder::decode_file(&img2, output_path, None)?;
 
-    let _pdf_bytes =  PdfEmbedding::embed(img)?;
-
+    let _pdf_bytes = PdfEmbedding::embed(img)?;
 
     std::fs::write("output.pdf", &_pdf_bytes)?;
 
