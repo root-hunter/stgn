@@ -160,7 +160,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let mut encoder = Encoder::default();
             encoder.configs.compress = enc_settings.compress;
-                encoder.encode_payload(&mut img, &data, secret)?;
+            encoder.encode_payload(&mut img, &data, secret)?;
 
             if let Err(e) = img.save(
                 enc_settings
@@ -217,10 +217,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::MaxCapacity(max_capacity_settings) => {
             let img = image::open(args.input.clone())?;
-            
+
             let encoder = Encoder::default();
             let capacity = encoder.max_capacity(&img);
-            
+
             let capacity_str = if max_capacity_settings.bytes {
                 capacity.to_string() + " bytes"
             } else {

@@ -32,13 +32,13 @@ impl Default for EncoderConfig {
     fn default() -> Self {
         Self {
             channels: CHANNEL_R | CHANNEL_G | CHANNEL_B, // Use all RGB channels by default (1 | 2 | 4)
-            bit_mask: BIT_MASK_LOW, // Use only the least significant bit
+            bit_mask: BIT_MASK_LOW,                      // Use only the least significant bit
             compress: true,
         }
     }
 }
 
-pub struct Encoder{
+pub struct Encoder {
     pub configs: EncoderConfig,
 }
 
@@ -54,7 +54,7 @@ impl Encoder {
     pub fn new(configs: EncoderConfig) -> Self {
         Self { configs }
     }
-    
+
     /// Core: serializes `data` with postcard, optionally encrypts, then LSB-encodes.
     pub fn encode_payload(
         &self,
@@ -191,11 +191,7 @@ impl Encoder {
         data: &[u8],
         secret: Option<&EncryptionSecret>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        self.encode_payload(
-            img,
-            &Data::from_bytes_payload(data.to_vec()),
-            secret,
-        )
+        self.encode_payload(img, &Data::from_bytes_payload(data.to_vec()), secret)
     }
 
     /// Encode multiple named entries in a single image.

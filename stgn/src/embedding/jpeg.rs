@@ -20,9 +20,9 @@
 //! assert_eq!(recovered, secret);
 //! ```
 
-use juniward::{embed, extract_with_params, EmbedConfig, StcParams};
+use flate2::{Compression, read::DeflateDecoder, write::DeflateEncoder};
+use juniward::{EmbedConfig, StcParams, embed, extract_with_params};
 use postcard::{from_bytes, to_allocvec};
-use flate2::{Compression, write::DeflateEncoder, read::DeflateDecoder};
 use std::io::{Read, Write};
 
 use crate::core::{
@@ -37,7 +37,10 @@ pub enum JpegEmbeddingError {
     /// The raw bytes are not a valid JPEG.
     InvalidJpeg(String),
     /// The serialised payload does not fit in the cover JPEG at the chosen embedding rate.
-    PayloadTooLarge { payload_bits: usize, max_bits: usize },
+    PayloadTooLarge {
+        payload_bits: usize,
+        max_bits: usize,
+    },
     /// J-UNIWARD / STC internal error.
     EmbeddingFailed(String),
     /// Any other I/O or serialisation error.
@@ -48,7 +51,10 @@ impl std::fmt::Display for JpegEmbeddingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::InvalidJpeg(s) => write!(f, "Invalid JPEG: {s}"),
-            Self::PayloadTooLarge { payload_bits, max_bits } => write!(
+            Self::PayloadTooLarge {
+                payload_bits,
+                max_bits,
+            } => write!(
                 f,
                 "Payload too large: {payload_bits} bits > max {max_bits} bits"
             ),
@@ -64,9 +70,13 @@ impl From<juniward::JuniwardError> for JpegEmbeddingError {
     fn from(e: juniward::JuniwardError) -> Self {
         match e {
             juniward::JuniwardError::InvalidJpeg(s) => Self::InvalidJpeg(s),
-            juniward::JuniwardError::PayloadTooLarge { payload_bits, max_bits } => {
-                Self::PayloadTooLarge { payload_bits, max_bits }
-            }
+            juniward::JuniwardError::PayloadTooLarge {
+                payload_bits,
+                max_bits,
+            } => Self::PayloadTooLarge {
+                payload_bits,
+                max_bits,
+            },
             juniward::JuniwardError::EmbeddingFailed(e) => Self::EmbeddingFailed(e.to_string()),
         }
     }
@@ -127,8 +137,10 @@ impl JpegEmbedding {
 
         let compressed = if compress {
             let mut enc = DeflateEncoder::new(Vec::new(), Compression::default());
-            enc.write_all(&serialized).map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
-            enc.finish().map_err(|e| JpegEmbeddingError::Other(e.to_string()))?
+            enc.write_all(&serialized)
+                .map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
+            enc.finish()
+                .map_err(|e| JpegEmbeddingError::Other(e.to_string()))?
         } else {
             serialized
         };
@@ -170,22 +182,29 @@ impl JpegEmbedding {
 
         let auth_len = frame[pos] as usize;
         pos += 1;
-        let auth: SecureContext =
-            from_bytes(&frame[pos..pos + auth_len]).map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
+        let auth: SecureContext = from_bytes(&frame[pos..pos + auth_len])
+            .map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
         pos += auth_len;
 
         let header_len = frame[pos] as usize;
         pos += 1;
-        let header: Header =
-            from_bytes(&frame[pos..pos + header_len]).map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
-        assert_eq!(header.magic, *crate::MAGIC, "Invalid magic bytes in JPEG stego frame");
+        let header: Header = from_bytes(&frame[pos..pos + header_len])
+            .map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
+        assert_eq!(
+            header.magic,
+            *crate::MAGIC,
+            "Invalid magic bytes in JPEG stego frame"
+        );
         pos += header_len;
 
         let payload = &frame[pos..pos + header.length as usize];
 
         let decrypted = if !matches!(auth.encryption_type, EncryptionType::None) {
-            let s = secret.ok_or_else(|| JpegEmbeddingError::Other("Secret required for decryption".into()))?;
-            auth.decrypt(payload, s).map_err(|e| JpegEmbeddingError::Other(e.to_string()))?
+            let s = secret.ok_or_else(|| {
+                JpegEmbeddingError::Other("Secret required for decryption".into())
+            })?;
+            auth.decrypt(payload, s)
+                .map_err(|e| JpegEmbeddingError::Other(e.to_string()))?
         } else {
             payload.to_vec()
         };
@@ -193,7 +212,8 @@ impl JpegEmbedding {
         let raw = if header.compressed {
             let mut dec = DeflateDecoder::new(&decrypted[..]);
             let mut out = Vec::new();
-            dec.read_to_end(&mut out).map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
+            dec.read_to_end(&mut out)
+                .map_err(|e| JpegEmbeddingError::Other(e.to_string()))?;
             out
         } else {
             decrypted

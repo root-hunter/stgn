@@ -9,7 +9,7 @@ pub use core::data::{Data, DataElement, DataType};
 pub use core::decoder::Decoder;
 pub use core::encoder::Encoder;
 #[cfg(feature = "jpeg")]
-pub use embedding::jpeg::{JpegEmbedding, JpegEmbedConfig, JpegEmbeddingError};
+pub use embedding::jpeg::{JpegEmbedConfig, JpegEmbedding, JpegEmbeddingError};
 pub use embedding::pdf::PdfEmbedding;
 
 mod tests {
@@ -162,10 +162,12 @@ mod tests {
             .unwrap();
         let data = "This is a secret message that will be encrypted using AES-256.";
         let secret = EncryptionSecret::Aes256(vec![0; 32]); // Chiave fittizia per il test
-        
+
         let encoder = Encoder::default();
-        encoder.encode_string(&mut img, data, Some(&secret)).unwrap();
-        
+        encoder
+            .encode_string(&mut img, data, Some(&secret))
+            .unwrap();
+
         let extracted_data = Decoder::decode_string(&img, Some(&secret)).unwrap();
         assert_eq!(data, extracted_data);
     }

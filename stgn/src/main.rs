@@ -1,6 +1,6 @@
 use image::ImageReader;
 use stgn::{
-    core::{decoder::Decoder, encoder::{self, Encoder}},
+    core::{decoder::Decoder, encoder::Encoder},
     embedding::pdf::PdfEmbedding,
     utils::{bytes_to_human, init_logging},
 };
