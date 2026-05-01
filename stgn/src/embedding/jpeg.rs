@@ -21,7 +21,7 @@
 //! ```
 
 use flate2::{Compression, read::DeflateDecoder, write::DeflateEncoder};
-use juniward::{EmbedConfig, StcParams, embed, extract_with_params};
+use juniward::{EmbedConfig, StcParams, embed, extract_with_key, extract_with_params};
 use postcard::{from_bytes, to_allocvec};
 use std::io::{Read, Write};
 
@@ -100,6 +100,17 @@ pub struct JpegEmbedConfig {
     pub max_bpnzac: f64,
     /// Whether to compress the payload with Deflate before embedding (default: true).
     pub compress: bool,
+    /// Optional password used to derive the STC parity-check matrix H.
+    ///
+    /// When `Some`, the H matrix and the coefficient permutation are derived
+    /// from this password via SHA-256.  The **same password** must be supplied
+    /// during extraction, otherwise the output is garbage.
+    ///
+    /// When `None`, the well-known literature values are used (⚠️ insecure).
+    pub password: Option<String>,
+    /// Number of distinct H columns derived from the password (default: 8).
+    /// Ignored when `password` is `None`.
+    pub n_stc_cols: usize,
 }
 
 impl Default for JpegEmbedConfig {
@@ -109,7 +120,16 @@ impl Default for JpegEmbedConfig {
             stc_h_height: 7,
             max_bpnzac: 0.4,
             compress: true,
+            password: None,
+            n_stc_cols: 8,
         }
+    }
+}
+
+impl JpegEmbedConfig {
+    /// Convenience constructor: defaults + password.
+    pub fn with_password(password: impl Into<String>) -> Self {
+        Self { password: Some(password.into()), ..Self::default() }
     }
 }
 
@@ -240,6 +260,8 @@ impl JpegEmbedding {
             sigma: cfg.sigma,
             stc_h_height: cfg.stc_h_height,
             max_bpnzac: cfg.max_bpnzac,
+            key: cfg.password.map(|p| p.into_bytes()),
+            n_stc_cols: cfg.n_stc_cols,
         };
 
         embed(cover_jpeg, &frame, juniward_cfg).map_err(Into::into)
@@ -250,14 +272,22 @@ impl JpegEmbedding {
     /// `frame_len` must equal the **byte length** of the framed message
     /// (i.e. the value returned by [`Self::frame_len`]).
     /// Both sender and receiver must agree on this value.
+    ///
+    /// `password` — if the image was embedded with a password, supply the same
+    /// value here; otherwise extraction will produce garbage.
     pub fn extract_payload(
         stego_jpeg: &[u8],
         frame_len: usize,
         secret: Option<&EncryptionSecret>,
-        stc_h_height: Option<usize>,
+        password: Option<&str>,
     ) -> Result<Data, JpegEmbeddingError> {
-        let params = StcParams::new(stc_h_height.unwrap_or(7));
-        let frame = extract_with_params(stego_jpeg, frame_len, &params)?;
+        let frame = match password {
+            Some(pw) => extract_with_key(stego_jpeg, frame_len, pw.as_bytes(), 7, 8)?,
+            None     => {
+                let params = StcParams::new(7);
+                extract_with_params(stego_jpeg, frame_len, &params)?
+            }
+        };
         Self::parse_frame(&frame, secret)
     }
 
@@ -271,14 +301,26 @@ impl JpegEmbedding {
         message: &[u8],
         secret: Option<&EncryptionSecret>,
     ) -> Result<(Vec<u8>, usize), JpegEmbeddingError> {
+        Self::embed_with_cfg(cover_jpeg, message, secret, None)
+    }
+
+    /// Like [`embed`] but accepts a full [`JpegEmbedConfig`] (including password).
+    pub fn embed_with_cfg(
+        cover_jpeg: &[u8],
+        message: &[u8],
+        secret: Option<&EncryptionSecret>,
+        cfg: Option<JpegEmbedConfig>,
+    ) -> Result<(Vec<u8>, usize), JpegEmbeddingError> {
         let data = Data::from_bytes_payload(message.to_vec());
-        let cfg = JpegEmbedConfig::default();
+        let cfg = cfg.unwrap_or_default();
         let frame = Self::build_frame(&data, secret, cfg.compress)?;
         let frame_len = frame.len();
         let juniward_cfg = EmbedConfig {
             sigma: cfg.sigma,
             stc_h_height: cfg.stc_h_height,
             max_bpnzac: cfg.max_bpnzac,
+            key: cfg.password.map(|p| p.into_bytes()),
+            n_stc_cols: cfg.n_stc_cols,
         };
         let stego = embed(cover_jpeg, &frame, juniward_cfg)?;
         Ok((stego, frame_len))
@@ -287,14 +329,23 @@ impl JpegEmbedding {
     /// Extracts raw bytes from a stego JPEG.
     ///
     /// `frame_len` is the second element of the tuple returned by [`Self::embed`].
+    /// Supply the same `password` used during embedding (or `None` if none was used).
     pub fn extract(
         stego_jpeg: &[u8],
         frame_len: usize,
         secret: Option<&EncryptionSecret>,
     ) -> Result<Vec<u8>, JpegEmbeddingError> {
-        let params = StcParams::new(7);
-        let frame = extract_with_params(stego_jpeg, frame_len, &params)?;
-        let data = Self::parse_frame(&frame, secret)?;
+        Self::extract_with_password(stego_jpeg, frame_len, secret, None)
+    }
+
+    /// Like [`extract`] but accepts a password to reconstruct the keyed H matrix.
+    pub fn extract_with_password(
+        stego_jpeg: &[u8],
+        frame_len: usize,
+        secret: Option<&EncryptionSecret>,
+        password: Option<&str>,
+    ) -> Result<Vec<u8>, JpegEmbeddingError> {
+        let data = Self::extract_payload(stego_jpeg, frame_len, secret, password)?;
         data.get_bytes("data")
             .map(|b| b.to_vec())
             .ok_or_else(|| JpegEmbeddingError::Other("No 'data' entry found in payload".into()))
@@ -308,28 +359,49 @@ impl JpegEmbedding {
         text: &str,
         secret: Option<&EncryptionSecret>,
     ) -> Result<(Vec<u8>, usize), JpegEmbeddingError> {
+        Self::embed_string_with_cfg(cover_jpeg, text, secret, None)
+    }
+
+    /// Like [`embed_string`] but accepts a full [`JpegEmbedConfig`] (including password).
+    pub fn embed_string_with_cfg(
+        cover_jpeg: &[u8],
+        text: &str,
+        secret: Option<&EncryptionSecret>,
+        cfg: Option<JpegEmbedConfig>,
+    ) -> Result<(Vec<u8>, usize), JpegEmbeddingError> {
         let data = Data::from_text(text);
-        let cfg = JpegEmbedConfig::default();
+        let cfg = cfg.unwrap_or_default();
         let frame = Self::build_frame(&data, secret, cfg.compress)?;
         let frame_len = frame.len();
         let juniward_cfg = EmbedConfig {
             sigma: cfg.sigma,
             stc_h_height: cfg.stc_h_height,
             max_bpnzac: cfg.max_bpnzac,
+            key: cfg.password.map(|p| p.into_bytes()),
+            n_stc_cols: cfg.n_stc_cols,
         };
         let stego = embed(cover_jpeg, &frame, juniward_cfg)?;
         Ok((stego, frame_len))
     }
 
     /// Extracts a UTF-8 string from a stego JPEG.
+    /// Supply the same `password` used during embedding (or `None` if none was used).
     pub fn extract_string(
         stego_jpeg: &[u8],
         frame_len: usize,
         secret: Option<&EncryptionSecret>,
     ) -> Result<String, JpegEmbeddingError> {
-        let params = StcParams::new(7);
-        let frame = extract_with_params(stego_jpeg, frame_len, &params)?;
-        let data = Self::parse_frame(&frame, secret)?;
+        Self::extract_string_with_password(stego_jpeg, frame_len, secret, None)
+    }
+
+    /// Like [`extract_string`] but accepts a password to reconstruct the keyed H matrix.
+    pub fn extract_string_with_password(
+        stego_jpeg: &[u8],
+        frame_len: usize,
+        secret: Option<&EncryptionSecret>,
+        password: Option<&str>,
+    ) -> Result<String, JpegEmbeddingError> {
+        let data = Self::extract_payload(stego_jpeg, frame_len, secret, password)?;
         data.get_text("message")
             .map(|s| s.to_string())
             .ok_or_else(|| JpegEmbeddingError::Other("No 'message' entry found in payload".into()))
