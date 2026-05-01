@@ -129,7 +129,10 @@ impl Default for JpegEmbedConfig {
 impl JpegEmbedConfig {
     /// Convenience constructor: defaults + password.
     pub fn with_password(password: impl Into<String>) -> Self {
-        Self { password: Some(password.into()), ..Self::default() }
+        Self {
+            password: Some(password.into()),
+            ..Self::default()
+        }
     }
 }
 
@@ -283,7 +286,7 @@ impl JpegEmbedding {
     ) -> Result<Data, JpegEmbeddingError> {
         let frame = match password {
             Some(pw) => extract_with_key(stego_jpeg, frame_len, pw.as_bytes(), 7, 8)?,
-            None     => {
+            None => {
                 let params = StcParams::new(7);
                 extract_with_params(stego_jpeg, frame_len, &params)?
             }
