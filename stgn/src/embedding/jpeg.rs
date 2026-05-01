@@ -21,9 +21,11 @@
 //! ```
 
 use flate2::{Compression, read::DeflateDecoder, write::DeflateEncoder};
-use juniward::{EmbedConfig, StcParams, embed, extract_with_key, extract_with_params};
+use juniward::{EmbedConfig, StcParams, embed, embed_with_params, extract_with_params};
 use postcard::{from_bytes, to_allocvec};
 use std::io::{Read, Write};
+use std::os::raw::c_ulong;
+
 
 use crate::core::{
     auth::{EncryptionSecret, EncryptionType, SecureContext},
@@ -263,11 +265,15 @@ impl JpegEmbedding {
             sigma: cfg.sigma,
             stc_h_height: cfg.stc_h_height,
             max_bpnzac: cfg.max_bpnzac,
-            key: cfg.password.map(|p| p.into_bytes()),
-            n_stc_cols: cfg.n_stc_cols,
         };
 
-        embed(cover_jpeg, &frame, juniward_cfg).map_err(Into::into)
+        match cfg.password {
+            Some(pw) => {
+                let params = StcParams::from_key(pw.as_bytes(), cfg.stc_h_height, cfg.n_stc_cols);
+                embed_with_params(cover_jpeg, &frame, juniward_cfg, &params).map_err(Into::into)
+            }
+            None => embed(cover_jpeg, &frame, juniward_cfg).map_err(Into::into),
+        }
     }
 
     /// Extracts a [`Data`] payload from a stego JPEG.
@@ -284,13 +290,11 @@ impl JpegEmbedding {
         secret: Option<&EncryptionSecret>,
         password: Option<&str>,
     ) -> Result<Data, JpegEmbeddingError> {
-        let frame = match password {
-            Some(pw) => extract_with_key(stego_jpeg, frame_len, pw.as_bytes(), 7, 8)?,
-            None => {
-                let params = StcParams::new(7);
-                extract_with_params(stego_jpeg, frame_len, &params)?
-            }
+        let params = match password {
+            Some(pw) => StcParams::from_key(pw.as_bytes(), 7, 8),
+            None => StcParams::new(7),
         };
+        let frame = extract_with_params(stego_jpeg, frame_len, &params)?;
         Self::parse_frame(&frame, secret)
     }
 
@@ -322,10 +326,14 @@ impl JpegEmbedding {
             sigma: cfg.sigma,
             stc_h_height: cfg.stc_h_height,
             max_bpnzac: cfg.max_bpnzac,
-            key: cfg.password.map(|p| p.into_bytes()),
-            n_stc_cols: cfg.n_stc_cols,
         };
-        let stego = embed(cover_jpeg, &frame, juniward_cfg)?;
+        let stego = match cfg.password {
+            Some(pw) => {
+                let params = StcParams::from_key(pw.as_bytes(), cfg.stc_h_height, cfg.n_stc_cols);
+                embed_with_params(cover_jpeg, &frame, juniward_cfg, &params)?
+            }
+            None => embed(cover_jpeg, &frame, juniward_cfg)?,
+        };
         Ok((stego, frame_len))
     }
 
@@ -380,10 +388,14 @@ impl JpegEmbedding {
             sigma: cfg.sigma,
             stc_h_height: cfg.stc_h_height,
             max_bpnzac: cfg.max_bpnzac,
-            key: cfg.password.map(|p| p.into_bytes()),
-            n_stc_cols: cfg.n_stc_cols,
         };
-        let stego = embed(cover_jpeg, &frame, juniward_cfg)?;
+        let stego = match cfg.password {
+            Some(pw) => {
+                let params = StcParams::from_key(pw.as_bytes(), cfg.stc_h_height, cfg.n_stc_cols);
+                embed_with_params(cover_jpeg, &frame, juniward_cfg, &params)?
+            }
+            None => embed(cover_jpeg, &frame, juniward_cfg)?,
+        };
         Ok((stego, frame_len))
     }
 
