@@ -979,6 +979,7 @@ dependencies = [
  "cc",
  "mozjpeg-sys",
  "rayon",
+ "sha2",
 ]
 
 [[package]]
