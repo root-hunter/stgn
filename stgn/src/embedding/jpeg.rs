@@ -24,8 +24,6 @@ use flate2::{Compression, read::DeflateDecoder, write::DeflateEncoder};
 use juniward::{EmbedConfig, StcParams, embed, embed_with_params, extract_with_params};
 use postcard::{from_bytes, to_allocvec};
 use std::io::{Read, Write};
-use std::os::raw::c_ulong;
-
 
 use crate::core::{
     auth::{EncryptionSecret, EncryptionType, SecureContext},
