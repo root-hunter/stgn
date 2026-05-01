@@ -115,6 +115,32 @@ impl Data {
             .and_then(|e| e.as_str().ok())
             .map(|s| s.to_string())
     }
+
+    pub fn get_texts(&self) -> Vec<(&str, &str)> {
+        self.elements
+            .iter()
+            .filter_map(|e| {
+                if matches!(e.data_type, DataType::Text) {
+                    e.as_str().ok().map(|s| (e.name.as_str(), s))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
+    pub fn get_binaries(&self) -> Vec<(&str, &[u8])> {
+        self.elements
+            .iter()
+            .filter_map(|e| {
+                if matches!(e.data_type, DataType::Binary) {
+                    Some((e.name.as_str(), e.as_bytes()))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
 }
 
 impl Default for Data {

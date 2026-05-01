@@ -8,6 +8,8 @@ pub use core::auth::{EncryptionSecret, EncryptionType};
 pub use core::data::{Data, DataElement, DataType};
 pub use core::decoder::Decoder;
 pub use core::encoder::Encoder;
+#[cfg(feature = "jpeg")]
+pub use embedding::jpeg::{JpegEmbedding, JpegEmbedConfig, JpegEmbeddingError};
 pub use embedding::pdf::PdfEmbedding;
 
 mod tests {

@@ -2,6 +2,7 @@
 members = [
     "stgn", "stgn-cli",
     "stgn-wasm",
+    "juniward",
 ]
 resolver = "2"
 
